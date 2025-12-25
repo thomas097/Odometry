@@ -41,31 +41,34 @@ class DepthAnything3:
         self.normalize = normalize
 
     @classmethod
-    def from_pretrained(cls, model_dir: str | Path, device: Literal['cpu', 'cuda'] = 'cpu', normalize: bool = False) -> "DepthAnything3":
+    def from_pretrained(
+        cls, 
+        model_dir: str | Path, 
+        device: Literal['cpu', 'cuda'] = 'cpu', 
+        quant: str | None = None, 
+        normalize: bool = False
+        ) -> "DepthAnything3":
         """
         Loads a DepthAnything3 ONNX model from a directory.
-
-        The directory must contain a `.onnx` file and a corresponding `.onnx_data` file.
 
         Args:
             model_dir (str): Path to the model directory.
             device (Literal['cpu', 'cuda'], optional): Runtime device.
+            quant (str | None, optional): Quantization level of model. Defaults to None.
             normalize (bool, optional): Whether to normalize inputs by dividing by 255.0.
 
         Returns:
             Initialized DepthAnything3 instance.
 
         Raises:
-            FileNotFoundError: If no ONNX model is found or associated `.onnx_data` file is missing.
+            FileNotFoundError: If no compatible ONNX model is found.
         """
         model_dir = Path(model_dir)
 
-        onnx_files = list(model_dir.glob("*.onnx"))
+        suffix = '_' + quant.lower() if quant is not None else ''
+        onnx_files = list(model_dir.glob(f"*{suffix}.onnx"))
         if not onnx_files:
             raise FileNotFoundError(f"No .onnx file found in '{model_dir}'")
-        
-        if not list(model_dir.glob("*.onnx_data")):
-            raise FileNotFoundError(f"No .onnx_data file found in '{model_dir}'")
 
         # Set CUDAExecutionProvider as preferred provider if `device='cuda'`
         providers = ["CPUExecutionProvider"]
@@ -104,7 +107,7 @@ class DepthAnything3:
                 'pixel_values': pixel_values
                 }
         )
-        return DepthAnything3Output(*outputs)
+        return DepthAnything3Output(*outputs) #type:ignore
 
     def _prepare_pixel_values(self, images: Iterable[NDArray]) -> NDArray[np.float32]:
         """

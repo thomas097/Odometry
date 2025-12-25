@@ -4,6 +4,7 @@ from extract_frames import extract_and_resize_frames
 model = DepthAnything3.from_pretrained(
     "checkpoints/da3-small",
     device='cpu',
+    quant='uint8',
     normalize=False
 )
 
