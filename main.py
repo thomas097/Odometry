@@ -1,5 +1,5 @@
 from src.model import DepthAnything3
-from extract_frames import extract_and_resize_frames
+from src.video import extract_and_resize_frames
 
 model = DepthAnything3.from_pretrained(
     "checkpoints/da3-small",
