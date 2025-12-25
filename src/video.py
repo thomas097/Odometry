@@ -1,10 +1,11 @@
 import cv2
+from typing import Generator
 
-def extract_and_resize_frames(
+def frames_from_video(
     video_path: str,
-    target_width: int,
-    frames_per_second: int = 1
-):
+    target_width: int = 480,
+    frames_per_second: float = 1.0
+    ) -> Generator:
     """
     Extract frames from a video at a fixed rate and resize them so that
     their width equals target_width (aspect ratio preserved).
@@ -14,8 +15,8 @@ def extract_and_resize_frames(
         target_width (int): Desired width of output frames.
         frames_per_second (int): Number of frames to extract per second.
 
-    Returns:
-        list: List of resized frames as NumPy arrays (BGR format).
+    Yields:
+        NDArray: resized frames as NumPy arrays (BGR format).
     """
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -24,7 +25,6 @@ def extract_and_resize_frames(
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     frame_interval = int(round(video_fps / frames_per_second))
 
-    frames = []
     frame_idx = 0
 
     while True:
@@ -42,9 +42,8 @@ def extract_and_resize_frames(
                 (target_width, target_height),
                 interpolation=cv2.INTER_AREA
             )
-            frames.append(resized)
+            yield resized
 
         frame_idx += 1
 
     cap.release()
-    return frames
